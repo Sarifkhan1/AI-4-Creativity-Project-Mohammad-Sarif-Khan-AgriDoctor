@@ -77,10 +77,10 @@ class APIClient {
     // Auth
     // ========================================================================
 
-    async register(email, password) {
+    async register(email, password, fullName) {
         const data = await this.request('/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, full_name: fullName })
         });
         this.setToken(data.access_token);
         return data;

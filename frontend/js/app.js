@@ -893,6 +893,7 @@ function initAuth() {
     // Register form
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const fullName = document.getElementById('register-name').value;
         const email = document.getElementById('register-email').value;
         const password = document.getElementById('register-password').value;
         const confirm = document.getElementById('register-confirm').value;
@@ -903,9 +904,10 @@ function initAuth() {
         }
         
         try {
-            await api.register(email, password);
+            await api.register(email, password, fullName);
             closeAuthModal();
             updateAuthUI();
+            alert('Registration successful! You are now logged in.');
         } catch (error) {
             alert(error.message || 'Registration failed');
         }

@@ -17,7 +17,8 @@ def test_auth():
     try:
         resp = requests.post(f"{BASE_URL}/auth/register", json={
             "email": email,
-            "password": password
+            "password": password,
+            "full_name": "Test User"
         })
         if resp.status_code != 200:
             print(f"❌ Registration failed: {resp.status_code} - {resp.text}")
@@ -26,6 +27,9 @@ def test_auth():
         token = data.get("access_token")
         if not token:
             print("❌ No access token in register response")
+            return False
+        if data.get("full_name") != "Test User":
+            print(f"❌ Name mismatch in register: got {data.get('full_name')}")
             return False
         print("✅ Registration successful")
     except Exception as e:

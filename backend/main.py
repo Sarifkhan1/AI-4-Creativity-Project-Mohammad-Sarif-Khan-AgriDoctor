@@ -71,6 +71,7 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
                 email TEXT UNIQUE NOT NULL,
+                full_name TEXT,
                 password_hash TEXT NOT NULL,
                 role TEXT DEFAULT 'user',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -206,7 +207,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         
         with get_db() as conn:
             user = conn.execute(
-                "SELECT id, email, role FROM users WHERE id = ?", (user_id,)
+                "SELECT id, email, full_name, role FROM users WHERE id = ?", (user_id,)
             ).fetchone()
             
             if not user:
@@ -224,6 +225,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 class UserRegister(BaseModel):
     email: EmailStr
+    full_name: Optional[str] = None
     password: str = Field(..., min_length=6)
 
 
@@ -237,6 +239,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user_id: str
     email: str
+    full_name: Optional[str] = None
 
 
 class CaseCreate(BaseModel):
@@ -319,8 +322,8 @@ async def register(user: UserRegister):
         password_hash = get_password_hash(user.password)
         
         conn.execute(
-            "INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)",
-            (user_id, user.email, password_hash)
+            "INSERT INTO users (id, email, full_name, password_hash) VALUES (?, ?, ?, ?)",
+            (user_id, user.email, user.full_name, password_hash)
         )
         
         token = create_access_token({"sub": user_id})
@@ -328,7 +331,8 @@ async def register(user: UserRegister):
         return TokenResponse(
             access_token=token,
             user_id=user_id,
-            email=user.email
+            email=user.email,
+            full_name=user.full_name
         )
 
 
@@ -337,7 +341,7 @@ async def login(user: UserLogin):
     """Login user."""
     with get_db() as conn:
         db_user = conn.execute(
-            "SELECT id, email, password_hash FROM users WHERE email = ?",
+            "SELECT id, email, full_name, password_hash FROM users WHERE email = ?",
             (user.email,)
         ).fetchone()
         
@@ -349,7 +353,8 @@ async def login(user: UserLogin):
         return TokenResponse(
             access_token=token,
             user_id=db_user["id"],
-            email=db_user["email"]
+            email=db_user["email"],
+            full_name=db_user["full_name"]
         )
 
 
